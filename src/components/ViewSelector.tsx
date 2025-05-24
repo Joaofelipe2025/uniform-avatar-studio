@@ -7,15 +7,15 @@ interface ViewSelectorProps {
 }
 
 const views = [
-  { id: 'shirt', name: 'Camisa', icon: '👕' },
+  { id: 'shirt', name: 'Jersey', icon: '👕' },
   { id: 'shorts', name: 'Shorts', icon: '🩳' },
-  { id: 'socks', name: 'Meias', icon: '🧦' }
+  { id: 'socks', name: 'Socks', icon: '🧦' }
 ];
 
 export const ViewSelector = ({ currentView, onViewChange }: ViewSelectorProps) => {
   return (
     <div className="space-y-2">
-      <h3 className="font-semibold text-gray-700">Visualizar</h3>
+      <h3 className="font-semibold text-gray-700">View</h3>
       <div className="grid grid-cols-3 gap-2">
         {views.map((view) => (
           <Button

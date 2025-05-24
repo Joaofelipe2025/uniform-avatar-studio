@@ -7,10 +7,10 @@ interface PatternSelectorProps {
 }
 
 const patterns = [
-  { id: 'solid', name: 'Sólido', preview: 'bg-gradient-to-r from-blue-500 to-blue-500' },
-  { id: 'stripes', name: 'Listras', preview: 'bg-gradient-to-r from-blue-500 via-blue-300 to-blue-500' },
-  { id: 'gradient', name: 'Gradiente', preview: 'bg-gradient-to-b from-blue-500 to-blue-800' },
-  { id: 'diamonds', name: 'Losangos', preview: 'bg-gradient-to-br from-blue-500 via-blue-300 to-blue-500' }
+  { id: 'solid', name: 'Solid', preview: 'bg-gradient-to-r from-blue-500 to-blue-500' },
+  { id: 'stripes', name: 'Stripes', preview: 'bg-gradient-to-r from-blue-500 via-blue-300 to-blue-500' },
+  { id: 'gradient', name: 'Gradient', preview: 'bg-gradient-to-b from-blue-500 to-blue-800' },
+  { id: 'diamonds', name: 'Diamonds', preview: 'bg-gradient-to-br from-blue-500 via-blue-300 to-blue-500' }
 ];
 
 export const PatternSelector = ({ customization, setCustomization }: PatternSelectorProps) => {
@@ -23,7 +23,7 @@ export const PatternSelector = ({ customization, setCustomization }: PatternSele
 
   return (
     <div className="space-y-4">
-      <Label className="text-lg font-semibold">Padrões Disponíveis</Label>
+      <Label className="text-lg font-semibold">Available Patterns</Label>
       <div className="grid grid-cols-2 gap-4">
         {patterns.map((pattern) => (
           <button
