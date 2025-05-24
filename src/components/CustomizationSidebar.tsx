@@ -38,14 +38,13 @@ interface CustomizationSidebarProps {
 
 const menuItems = [
   { id: 'design', label: 'Design', icon: Palette },
-  { id: 'color', label: 'Color', icon: CircleDot },
-  { id: 'pattern', label: 'Pattern', icon: Layers },
-  { id: 'gradient', label: 'Gradient', icon: CircleDot },
-  { id: 'number', label: 'Number', icon: Hash },
-  { id: 'name', label: 'Name', icon: User },
-  { id: 'text', label: 'Text', icon: Type },
+  { id: 'color', label: 'Cor', icon: CircleDot },
+  { id: 'pattern', label: 'Padrão', icon: Layers },
+  { id: 'number', label: 'Número', icon: Hash },
+  { id: 'name', label: 'Nome', icon: User },
+  { id: 'text', label: 'Texto', icon: Type },
   { id: 'logo', label: 'Logo', icon: Image },
-  { id: 'support', label: 'Support', icon: HelpCircle },
+  { id: 'support', label: 'Suporte', icon: HelpCircle },
 ];
 
 export const CustomizationSidebar = ({
@@ -108,36 +107,37 @@ export const CustomizationSidebar = ({
           />
         );
       default:
-        return <div className="p-4">Select an option from the menu</div>;
+        return <div className="p-4 text-center text-gray-500">Selecione uma opção do menu</div>;
     }
   };
 
   return (
-    <Sidebar className="w-80 max-w-[320px] border-r bg-white z-20 relative" collapsible="offcanvas">
-      <SidebarHeader className="border-b p-0">
-        <div className="flex items-center justify-between p-4">
+    <Sidebar className="w-80 border-r bg-white" collapsible="icon">
+      <SidebarHeader className="border-b p-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900">Personalização</h2>
           <div className="flex items-center space-x-2">
-            <Undo className="w-4 h-4 text-gray-400 cursor-pointer hover:text-gray-600" />
-            <Redo className="w-4 h-4 text-gray-400 cursor-pointer hover:text-gray-600" />
+            <Undo className="w-4 h-4 text-gray-400 cursor-pointer hover:text-gray-600 transition-colors" />
+            <Redo className="w-4 h-4 text-gray-400 cursor-pointer hover:text-gray-600 transition-colors" />
           </div>
         </div>
       </SidebarHeader>
       
       <div className="flex h-full">
         {/* Menu Navigation */}
-        <div className="w-16 sm:w-20 border-r bg-gray-50 flex-shrink-0">
-          <SidebarContent className="p-1 sm:p-2">
-            <SidebarMenu>
+        <div className="w-20 border-r bg-gray-50 flex-shrink-0">
+          <SidebarContent className="p-2">
+            <SidebarMenu className="space-y-1">
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
                     onClick={() => setActiveSection(item.id)}
                     isActive={activeSection === item.id}
-                    className="flex flex-col items-center p-2 sm:p-3 h-auto text-xs"
+                    className="flex flex-col items-center p-3 h-auto text-xs group hover:bg-blue-50 data-[active=true]:bg-blue-100 data-[active=true]:text-blue-700 rounded-lg transition-colors"
                     title={item.label}
                   >
-                    <item.icon className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
-                    <span className="text-xs font-medium hidden sm:block">{item.label}</span>
+                    <item.icon className="w-5 h-5 mb-1 group-hover:text-blue-600 data-[active=true]:text-blue-700" />
+                    <span className="text-xs font-medium">{item.label}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -146,8 +146,10 @@ export const CustomizationSidebar = ({
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto min-w-0">
-          {renderContent()}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-4">
+            {renderContent()}
+          </div>
         </div>
       </div>
       

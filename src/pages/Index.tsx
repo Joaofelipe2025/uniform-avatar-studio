@@ -7,7 +7,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Save, Download, Send, Menu } from 'lucide-react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { CustomizationSidebar } from '@/components/CustomizationSidebar';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { SendDesignDialog } from '@/components/SendDesignDialog';
+import { supabase } from '@/integrations/supabase/client';
 
 const Index = () => {
   const isMobile = useIsMobile();
@@ -24,39 +25,45 @@ const Index = () => {
     logoUrl: undefined
   });
 
-  const handleSaveProject = () => {
-    const projects = JSON.parse(localStorage.getItem('uniformProjects') || '[]');
-    const newProject = {
-      id: Date.now(),
-      name: `Project ${new Date().toLocaleDateString()}`,
-      customization,
-      currentView,
-      createdAt: new Date().toISOString()
-    };
-    projects.push(newProject);
-    localStorage.setItem('uniformProjects', JSON.stringify(projects));
-    
-    toast.success('Project saved successfully!', {
-      description: 'You can access it in the "My Projects" section'
-    });
+  const handleSaveProject = async () => {
+    try {
+      const projectData = {
+        name: `Projeto ${new Date().toLocaleDateString()}`,
+        customization,
+        current_view: currentView,
+        status: 'draft'
+      };
+
+      const { data, error } = await supabase
+        .from('uniform_projects')
+        .insert(projectData)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Erro ao salvar projeto:', error);
+        toast.error('Erro ao salvar projeto');
+        return;
+      }
+
+      console.log('Projeto salvo:', data);
+      toast.success('Projeto salvo com sucesso!', {
+        description: 'Você pode acessá-lo na seção "Meus Projetos"'
+      });
+    } catch (error) {
+      console.error('Erro inesperado:', error);
+      toast.error('Erro inesperado ao salvar projeto');
+    }
   };
 
   const handleExportImage = () => {
-    toast.success('Image exported!', {
-      description: 'Download will start shortly...'
+    toast.success('Imagem exportada!', {
+      description: 'Download iniciará em breve...'
     });
   };
 
   const handleSendDesign = () => {
-    handleSaveProject();
     setShowSendDialog(true);
-  };
-
-  const handleConfirmSend = () => {
-    setShowSendDialog(false);
-    toast.success('Design sent successfully!', {
-      description: 'Someone from A Unique Performance team will contact you soon to align order details.'
-    });
   };
 
   return (
@@ -80,7 +87,7 @@ const Index = () => {
                     <Menu className="w-5 h-5" />
                   </SidebarTrigger>
                   <div className="text-xl lg:text-2xl font-bold text-black">
-                    Uniform Configurator
+                    Configurador de Uniformes
                   </div>
                 </div>
                 
@@ -91,7 +98,7 @@ const Index = () => {
                     className="bg-black hover:bg-gray-800"
                   >
                     <Save className="w-4 h-4 mr-1 lg:mr-2" />
-                    <span className="hidden sm:inline">Save</span>
+                    <span className="hidden sm:inline">Salvar</span>
                   </Button>
                   <Button 
                     onClick={handleExportImage}
@@ -99,7 +106,7 @@ const Index = () => {
                     size={isMobile ? "sm" : "default"}
                   >
                     <Download className="w-4 h-4 mr-1 lg:mr-2" />
-                    <span className="hidden sm:inline">Export</span>
+                    <span className="hidden sm:inline">Exportar</span>
                   </Button>
                   <Button 
                     onClick={handleSendDesign}
@@ -107,7 +114,7 @@ const Index = () => {
                     className="bg-green-600 hover:bg-green-700"
                   >
                     <Send className="w-4 h-4 mr-1 lg:mr-2" />
-                    <span className="hidden sm:inline">Send Design</span>
+                    <span className="hidden sm:inline">Enviar Design</span>
                   </Button>
                 </div>
               </div>
@@ -116,7 +123,7 @@ const Index = () => {
 
           {/* 3D Viewer */}
           <div className="flex-1 p-3 lg:p-6 min-h-0 relative">
-            <div className="bg-white rounded-xl shadow-lg p-3 lg:p-6 h-full relative z-0">
+            <div className="bg-white rounded-xl shadow-lg p-3 lg:p-6 h-full relative overflow-hidden">
               <div className="h-full w-full min-h-[400px] lg:min-h-[500px]">
                 <UniformViewer3D 
                   currentView={currentView}
@@ -127,25 +134,13 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Send Design Confirmation Dialog */}
-        <Dialog open={showSendDialog} onOpenChange={setShowSendDialog}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Send Design to A Unique Performance</DialogTitle>
-              <DialogDescription>
-                Are you ready to send your design? Our team will review it and contact you to align all order details.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="flex justify-end space-x-2 mt-4">
-              <Button variant="outline" onClick={() => setShowSendDialog(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleConfirmSend} className="bg-green-600 hover:bg-green-700">
-                Send Design
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        {/* Send Design Dialog */}
+        <SendDesignDialog
+          open={showSendDialog}
+          onOpenChange={setShowSendDialog}
+          customization={customization}
+          currentView={currentView}
+        />
       </div>
     </SidebarProvider>
   );

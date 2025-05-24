@@ -1,14 +1,21 @@
 
+import { supabase } from '@/integrations/supabase/client';
 import { UniformProject, ProjectStats } from '@/types/database';
 
-// Mock database service - replace with Supabase when connected
 export class DatabaseService {
-  private static STORAGE_KEY = 'uniformProjects';
-
   static async getAllProjects(): Promise<UniformProject[]> {
     try {
-      const projects = localStorage.getItem(this.STORAGE_KEY);
-      return projects ? JSON.parse(projects) : [];
+      const { data, error } = await supabase
+        .from('uniform_projects')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching projects:', error);
+        throw error;
+      }
+
+      return data || [];
     } catch (error) {
       console.error('Error fetching projects:', error);
       return [];
@@ -17,8 +24,18 @@ export class DatabaseService {
 
   static async getProjectById(id: string): Promise<UniformProject | null> {
     try {
-      const projects = await this.getAllProjects();
-      return projects.find(p => p.id === id) || null;
+      const { data, error } = await supabase
+        .from('uniform_projects')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching project:', error);
+        return null;
+      }
+
+      return data;
     } catch (error) {
       console.error('Error fetching project:', error);
       return null;
@@ -27,17 +44,18 @@ export class DatabaseService {
 
   static async saveProject(project: Omit<UniformProject, 'id' | 'created_at' | 'updated_at'>): Promise<UniformProject> {
     try {
-      const projects = await this.getAllProjects();
-      const newProject: UniformProject = {
-        ...project,
-        id: Date.now().toString(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      
-      projects.push(newProject);
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(projects));
-      return newProject;
+      const { data, error } = await supabase
+        .from('uniform_projects')
+        .insert(project)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error saving project:', error);
+        throw error;
+      }
+
+      return data;
     } catch (error) {
       console.error('Error saving project:', error);
       throw error;
@@ -46,19 +64,19 @@ export class DatabaseService {
 
   static async updateProject(id: string, updates: Partial<UniformProject>): Promise<UniformProject | null> {
     try {
-      const projects = await this.getAllProjects();
-      const index = projects.findIndex(p => p.id === id);
-      
-      if (index === -1) return null;
-      
-      projects[index] = {
-        ...projects[index],
-        ...updates,
-        updated_at: new Date().toISOString(),
-      };
-      
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(projects));
-      return projects[index];
+      const { data, error } = await supabase
+        .from('uniform_projects')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating project:', error);
+        return null;
+      }
+
+      return data;
     } catch (error) {
       console.error('Error updating project:', error);
       return null;
@@ -67,9 +85,16 @@ export class DatabaseService {
 
   static async deleteProject(id: string): Promise<boolean> {
     try {
-      const projects = await this.getAllProjects();
-      const filteredProjects = projects.filter(p => p.id !== id);
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(filteredProjects));
+      const { error } = await supabase
+        .from('uniform_projects')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error deleting project:', error);
+        return false;
+      }
+
       return true;
     } catch (error) {
       console.error('Error deleting project:', error);
@@ -79,7 +104,16 @@ export class DatabaseService {
 
   static async getProjectStats(): Promise<ProjectStats> {
     try {
-      const projects = await this.getAllProjects();
+      const { data, error } = await supabase
+        .from('uniform_projects')
+        .select('status');
+
+      if (error) {
+        console.error('Error fetching stats:', error);
+        throw error;
+      }
+
+      const projects = data || [];
       
       return {
         totalProjects: projects.length,
