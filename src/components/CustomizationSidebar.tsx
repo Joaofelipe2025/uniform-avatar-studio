@@ -113,7 +113,7 @@ export const CustomizationSidebar = ({
   };
 
   return (
-    <Sidebar className="w-80 max-w-[320px] border-r bg-white">
+    <Sidebar className="w-80 max-w-[320px] border-r bg-white z-20 relative" collapsible="offcanvas">
       <SidebarHeader className="border-b p-0">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center space-x-2">
