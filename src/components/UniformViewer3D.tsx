@@ -18,11 +18,12 @@ interface UniformViewer3DProps {
 
 export const UniformViewer3D = ({ currentView, customization }: UniformViewer3DProps) => {
   return (
-    <div className="w-full h-full bg-gradient-to-br from-spized-gray to-white rounded-xl overflow-hidden shadow-2xl">
+    <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 relative">
       <Canvas
         camera={{ position: [0, 0, 5], fov: 50 }}
         shadows
-        className="cursor-grab active:cursor-grabbing"
+        className="cursor-grab active:cursor-grabbing w-full h-full"
+        style={{ width: '100%', height: '100%' }}
       >
         <ambientLight intensity={0.6} />
         <directionalLight 
@@ -70,7 +71,7 @@ export const UniformViewer3D = ({ currentView, customization }: UniformViewer3DP
       
       {/* Loading overlay */}
       <div className="absolute inset-0 bg-white bg-opacity-80 flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-300" id="loading-overlay">
-        <div className="text-spized-blue font-semibold">Carregando modelo 3D...</div>
+        <div className="text-blue-600 font-semibold">Loading 3D Model...</div>
       </div>
     </div>
   );

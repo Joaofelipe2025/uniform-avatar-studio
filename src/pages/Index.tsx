@@ -67,9 +67,9 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Full Width Header */}
-      <header className="bg-white shadow-lg border-b sticky top-0 z-50">
+      <header className="bg-white shadow-lg border-b sticky top-0 z-50 flex-shrink-0">
         <div className="w-full px-6">
           <div className="flex justify-between items-center h-16">
             {/* Left Section */}
@@ -142,7 +142,7 @@ const Index = () => {
 
       {/* Main Content with Sidebar */}
       <SidebarProvider defaultOpen={true} open={sidebarOpen} onOpenChange={setSidebarOpen}>
-        <div className="flex w-full">
+        <div className="flex flex-1 min-h-0">
           <CustomizationSidebar
             customization={customization}
             setCustomization={setCustomization}
@@ -151,10 +151,10 @@ const Index = () => {
           />
           
           {/* Main Viewer Area */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 flex flex-col">
             {/* Mobile Header Actions */}
             {isMobile && (
-              <div className="p-4 bg-white border-b md:hidden">
+              <div className="p-4 bg-white border-b md:hidden flex-shrink-0">
                 <div className="flex items-center justify-between">
                   <SidebarTrigger className="p-2 rounded-lg bg-gray-100">
                     <Menu className="w-5 h-5" />
@@ -164,17 +164,17 @@ const Index = () => {
               </div>
             )}
 
-            {/* 3D Viewer */}
-            <div className="p-6 min-h-[calc(100vh-4rem)]">
-              <div className="bg-white rounded-2xl shadow-xl p-6 h-full">
-                <div className="h-full w-full min-h-[600px] relative">
-                  <div className="absolute top-4 left-4 z-10">
-                    <div className="bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg">
-                      <p className="text-sm font-medium text-gray-700">
-                        Viewing: <span className="text-blue-600 capitalize">{currentView}</span>
-                      </p>
-                    </div>
+            {/* 3D Viewer - Takes all remaining space */}
+            <div className="flex-1 p-4 min-h-0">
+              <div className="bg-white rounded-2xl shadow-xl h-full relative overflow-hidden">
+                <div className="absolute top-4 left-4 z-10">
+                  <div className="bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg">
+                    <p className="text-sm font-medium text-gray-700">
+                      Viewing: <span className="text-blue-600 capitalize">{currentView}</span>
+                    </p>
                   </div>
+                </div>
+                <div className="h-full w-full">
                   <UniformViewer3D 
                     currentView={currentView}
                     customization={customization}
