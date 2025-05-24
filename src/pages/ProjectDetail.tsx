@@ -208,7 +208,7 @@ const ProjectDetail = () => {
               
               <div>
                 <label className="text-sm font-medium text-gray-600">Current View</label>
-                <p className="text-lg text-black capitalize">{project.currentView}</p>
+                <p className="text-lg text-black capitalize">{project.current_view}</p>
               </div>
             </CardContent>
           </Card>

@@ -15,7 +15,11 @@ export class DatabaseService {
         throw error;
       }
 
-      return data || [];
+      // Convert the Supabase data to our UniformProject type
+      return (data || []).map(project => ({
+        ...project,
+        customization: project.customization as UniformProject['customization']
+      }));
     } catch (error) {
       console.error('Error fetching projects:', error);
       return [];
@@ -35,7 +39,11 @@ export class DatabaseService {
         return null;
       }
 
-      return data;
+      // Convert the Supabase data to our UniformProject type
+      return {
+        ...data,
+        customization: data.customization as UniformProject['customization']
+      };
     } catch (error) {
       console.error('Error fetching project:', error);
       return null;
@@ -55,7 +63,11 @@ export class DatabaseService {
         throw error;
       }
 
-      return data;
+      // Convert the Supabase data to our UniformProject type
+      return {
+        ...data,
+        customization: data.customization as UniformProject['customization']
+      };
     } catch (error) {
       console.error('Error saving project:', error);
       throw error;
@@ -76,7 +88,11 @@ export class DatabaseService {
         return null;
       }
 
-      return data;
+      // Convert the Supabase data to our UniformProject type
+      return {
+        ...data,
+        customization: data.customization as UniformProject['customization']
+      };
     } catch (error) {
       console.error('Error updating project:', error);
       return null;
