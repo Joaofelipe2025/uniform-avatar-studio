@@ -11,7 +11,7 @@ export interface UniformProject {
     logoUrl?: string;
     [key: string]: any;
   };
-  currentView: string;
+  current_view: string;
   status: 'draft' | 'sent' | 'in_progress' | 'completed';
   customer_email?: string;
   customer_name?: string;
