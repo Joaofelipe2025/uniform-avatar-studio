@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { UniformProject, ProjectStats } from '@/types/database';
 
@@ -18,7 +17,8 @@ export class DatabaseService {
       // Convert the Supabase data to our UniformProject type
       return (data || []).map(project => ({
         ...project,
-        customization: project.customization as UniformProject['customization']
+        customization: project.customization as UniformProject['customization'],
+        status: project.status as UniformProject['status']
       }));
     } catch (error) {
       console.error('Error fetching projects:', error);
@@ -42,7 +42,8 @@ export class DatabaseService {
       // Convert the Supabase data to our UniformProject type
       return {
         ...data,
-        customization: data.customization as UniformProject['customization']
+        customization: data.customization as UniformProject['customization'],
+        status: data.status as UniformProject['status']
       };
     } catch (error) {
       console.error('Error fetching project:', error);
@@ -66,7 +67,8 @@ export class DatabaseService {
       // Convert the Supabase data to our UniformProject type
       return {
         ...data,
-        customization: data.customization as UniformProject['customization']
+        customization: data.customization as UniformProject['customization'],
+        status: data.status as UniformProject['status']
       };
     } catch (error) {
       console.error('Error saving project:', error);
@@ -91,7 +93,8 @@ export class DatabaseService {
       // Convert the Supabase data to our UniformProject type
       return {
         ...data,
-        customization: data.customization as UniformProject['customization']
+        customization: data.customization as UniformProject['customization'],
+        status: data.status as UniformProject['status']
       };
     } catch (error) {
       console.error('Error updating project:', error);
