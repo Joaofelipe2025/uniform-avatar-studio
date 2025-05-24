@@ -18,7 +18,7 @@ export const NumberCustomizer = ({ customization, setCustomization }: NumberCust
   return (
     <div className="p-4 space-y-6">
       <div>
-        <h2 className="text-lg font-semibold mb-2">Player Number</h2>
+        <h2 className="text-lg font-semibold mb-2 text-black">Player Number</h2>
         <p className="text-sm text-gray-600 mb-4">Enter the player number</p>
       </div>
 
@@ -38,8 +38,8 @@ export const NumberCustomizer = ({ customization, setCustomization }: NumberCust
       </div>
 
       <div className="bg-gray-50 p-4 rounded-lg">
-        <h4 className="font-semibold mb-2">Preview</h4>
-        <div className="bg-blue-600 text-white p-4 rounded-lg text-center">
+        <h4 className="font-semibold mb-2 text-black">Preview</h4>
+        <div className="bg-black text-white p-4 rounded-lg text-center">
           <div className="text-4xl font-bold">
             {customization.playerNumber || '00'}
           </div>

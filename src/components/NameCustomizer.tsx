@@ -18,7 +18,7 @@ export const NameCustomizer = ({ customization, setCustomization }: NameCustomiz
   return (
     <div className="p-4 space-y-6">
       <div>
-        <h2 className="text-lg font-semibold mb-2">Player Name</h2>
+        <h2 className="text-lg font-semibold mb-2 text-black">Player Name</h2>
         <p className="text-sm text-gray-600 mb-4">Enter the player name</p>
       </div>
 
@@ -38,8 +38,8 @@ export const NameCustomizer = ({ customization, setCustomization }: NameCustomiz
       </div>
 
       <div className="bg-gray-50 p-4 rounded-lg">
-        <h4 className="font-semibold mb-2">Preview</h4>
-        <div className="bg-blue-600 text-white p-4 rounded-lg text-center">
+        <h4 className="font-semibold mb-2 text-black">Preview</h4>
+        <div className="bg-black text-white p-4 rounded-lg text-center">
           <div className="text-sm font-medium">
             {customization.playerName || 'NAME'}
           </div>

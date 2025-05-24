@@ -113,7 +113,7 @@ export const CustomizationSidebar = ({
   };
 
   return (
-    <Sidebar className="w-80 border-r bg-white">
+    <Sidebar className="w-80 max-w-[320px] border-r bg-white">
       <SidebarHeader className="border-b p-0">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center space-x-2">
@@ -125,19 +125,19 @@ export const CustomizationSidebar = ({
       
       <div className="flex h-full">
         {/* Menu Navigation */}
-        <div className="w-20 border-r bg-gray-50">
-          <SidebarContent className="p-2">
+        <div className="w-16 sm:w-20 border-r bg-gray-50 flex-shrink-0">
+          <SidebarContent className="p-1 sm:p-2">
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
                     onClick={() => setActiveSection(item.id)}
                     isActive={activeSection === item.id}
-                    className="flex flex-col items-center p-3 h-auto text-xs"
+                    className="flex flex-col items-center p-2 sm:p-3 h-auto text-xs"
                     title={item.label}
                   >
-                    <item.icon className="w-5 h-5 mb-1" />
-                    <span className="text-xs font-medium">{item.label}</span>
+                    <item.icon className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
+                    <span className="text-xs font-medium hidden sm:block">{item.label}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -146,7 +146,7 @@ export const CustomizationSidebar = ({
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto min-w-0">
           {renderContent()}
         </div>
       </div>
