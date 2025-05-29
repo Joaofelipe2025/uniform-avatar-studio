@@ -1,7 +1,8 @@
 
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useEffect, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Mesh, MeshStandardMaterial, Color, CanvasTexture } from 'three';
+import { useGLTF } from '@react-three/drei';
+import { Mesh, MeshStandardMaterial, Color, CanvasTexture, Object3D } from 'three';
 import * as THREE from 'three';
 
 interface UniformModelProps {
@@ -13,38 +14,111 @@ interface UniformModelProps {
     playerName: string;
     playerNumber: string;
     logoUrl?: string;
+    modelType?: string;
+    patternColor?: string;
+  };
+}
+
+function hexToRGB(hex: string) {
+  const clean = hex.replace('#', '');
+  const bigint = parseInt(clean, 16);
+  return {
+    r: (bigint >> 16) & 255,
+    g: (bigint >> 8) & 255,
+    b: bigint & 255
+  };
+}
+
+function applyColoredPattern(
+  textureFile: string, 
+  patternColor: string, 
+  model: Object3D,
+  callback: (texture: CanvasTexture) => void
+) {
+  const img = new Image();
+  img.src = `/textures/${textureFile}`;
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext('2d')!;
+    ctx.drawImage(img, 0, 0);
+
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    const color = hexToRGB(patternColor);
+
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i] < 10 && data[i + 1] < 10 && data[i + 2] < 10 && data[i + 3] > 0) {
+        data[i] = color.r;
+        data[i + 1] = color.g;
+        data[i + 2] = color.b;
+      }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+    const texture = new CanvasTexture(canvas);
+    callback(texture);
   };
 }
 
 export const UniformModel = ({ currentView, customization }: UniformModelProps) => {
-  const meshRef = useRef<Mesh>(null);
+  const meshRef = useRef<THREE.Group>(null);
+  const [patternTexture, setPatternTexture] = useState<CanvasTexture | null>(null);
   
-  // Create dynamic texture based on customization
-  const texture = useMemo(() => {
+  const modelType = customization.modelType || 'home';
+  const modelPath = `/kits/${modelType}.glb`;
+  
+  // Load the GLB model
+  const { scene } = useGLTF(modelPath);
+  
+  // Clone the scene to avoid sharing between instances
+  const clonedScene = useMemo(() => scene.clone(), [scene]);
+
+  // Apply colors and patterns when customization changes
+  useEffect(() => {
+    if (!clonedScene) return;
+
+    // Apply base color to the Body mesh
+    clonedScene.traverse((child) => {
+      if (child instanceof Mesh && child.name === "Body") {
+        if (child.material instanceof MeshStandardMaterial) {
+          child.material = child.material.clone();
+          child.material.color.set(customization.baseColor);
+          
+          // Apply pattern if selected
+          if (customization.pattern && customization.pattern !== 'solid' && customization.patternColor) {
+            const patternFile = `${customization.pattern}.svg`;
+            applyColoredPattern(patternFile, customization.patternColor, clonedScene, (texture) => {
+              if (child.material instanceof MeshStandardMaterial) {
+                child.material.map = texture;
+                child.material.needsUpdate = true;
+              }
+            });
+          } else {
+            // Remove pattern if solid is selected
+            child.material.map = null;
+            child.material.needsUpdate = true;
+          }
+        }
+      }
+    });
+  }, [clonedScene, customization.baseColor, customization.pattern, customization.patternColor]);
+
+  // Add player number and name as text geometry or decals
+  useEffect(() => {
+    if (!clonedScene || !customization.playerNumber) return;
+
+    // Create canvas for player number
     const canvas = document.createElement('canvas');
     canvas.width = 512;
     canvas.height = 512;
     const ctx = canvas.getContext('2d')!;
     
-    // Base color
-    ctx.fillStyle = customization.baseColor;
-    ctx.fillRect(0, 0, 512, 512);
+    // Clear canvas
+    ctx.clearRect(0, 0, 512, 512);
     
-    // Apply pattern
-    if (customization.pattern === 'stripes') {
-      ctx.fillStyle = customization.accentColor;
-      for (let i = 0; i < 512; i += 80) {
-        ctx.fillRect(i, 0, 40, 512);
-      }
-    } else if (customization.pattern === 'gradient') {
-      const gradient = ctx.createLinearGradient(0, 0, 0, 512);
-      gradient.addColorStop(0, customization.baseColor);
-      gradient.addColorStop(1, customization.accentColor);
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, 512, 512);
-    }
-    
-    // Add player number (large, centered)
+    // Add player number
     if (customization.playerNumber) {
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 120px Arial';
@@ -55,7 +129,7 @@ export const UniformModel = ({ currentView, customization }: UniformModelProps) 
       ctx.fillText(customization.playerNumber, 256, 300);
     }
     
-    // Add player name (smaller, below number)
+    // Add player name
     if (customization.playerName) {
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 32px Arial';
@@ -66,34 +140,19 @@ export const UniformModel = ({ currentView, customization }: UniformModelProps) 
       ctx.fillText(customization.playerName.toUpperCase(), 256, 360);
     }
     
-    return new CanvasTexture(canvas);
-  }, [customization]);
-
-  // Create geometry based on current view
-  const geometry = useMemo(() => {
-    switch (currentView) {
-      case 'shirt':
-        // Create a shirt-like geometry
-        const shirtGeometry = new THREE.CylinderGeometry(0.8, 1.2, 2, 16);
-        return shirtGeometry;
-      case 'shorts':
-        const shortsGeometry = new THREE.CylinderGeometry(1, 1.1, 1, 12);
-        return shortsGeometry;
-      case 'socks':
-        const socksGeometry = new THREE.CylinderGeometry(0.3, 0.35, 1.5, 12);
-        return socksGeometry;
-      default:
-        return new THREE.CylinderGeometry(0.8, 1.2, 2, 16);
-    }
-  }, [currentView]);
-
-  const material = useMemo(() => {
-    return new MeshStandardMaterial({
-      map: texture,
-      roughness: 0.7,
-      metalness: 0.1,
+    const numberTexture = new CanvasTexture(canvas);
+    
+    // Apply to number area or create a decal
+    clonedScene.traverse((child) => {
+      if (child instanceof Mesh && (child.name === "Number" || child.name === "Back")) {
+        if (child.material instanceof MeshStandardMaterial) {
+          child.material = child.material.clone();
+          child.material.map = numberTexture;
+          child.material.needsUpdate = true;
+        }
+      }
     });
-  }, [texture]);
+  }, [clonedScene, customization.playerNumber, customization.playerName]);
 
   useFrame((state) => {
     if (meshRef.current) {
@@ -117,13 +176,17 @@ export const UniformModel = ({ currentView, customization }: UniformModelProps) 
   }, [currentView]);
 
   return (
-    <mesh
+    <group
       ref={meshRef}
-      geometry={geometry}
-      material={material}
       position={position}
-      castShadow
-      receiveShadow
-    />
+      scale={[1, 1, 1]}
+    >
+      <primitive object={clonedScene} />
+    </group>
   );
 };
+
+// Preload all models
+useGLTF.preload('/kits/home.glb');
+useGLTF.preload('/kits/away.glb');
+useGLTF.preload('/kits/goalkeeper.glb');

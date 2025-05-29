@@ -19,10 +19,12 @@ const Index = () => {
   const [customization, setCustomization] = useState({
     baseColor: '#2563eb',
     accentColor: '#1d4ed8',
-    pattern: 'stripes',
+    pattern: 'solid',
     playerName: 'SILVA',
     playerNumber: '10',
-    logoUrl: undefined
+    logoUrl: undefined,
+    modelType: 'home',
+    patternColor: '#ffffff'
   });
 
   const handleSaveProject = async () => {
@@ -170,7 +172,9 @@ const Index = () => {
                 <div className="absolute top-4 left-4 z-10">
                   <div className="bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg">
                     <p className="text-sm font-medium text-gray-700">
-                      Viewing: <span className="text-blue-600 capitalize">{currentView}</span>
+                      Kit: <span className="text-blue-600 capitalize">{customization.modelType}</span>
+                      {' | '}
+                      View: <span className="text-blue-600 capitalize">{currentView}</span>
                     </p>
                   </div>
                 </div>

@@ -20,15 +20,16 @@ import {
   Undo,
   Redo,
   HelpCircle,
-  ChevronDown
+  Shirt
 } from 'lucide-react';
-import { DesignSelector } from './DesignSelector';
+import { ModelSelector } from './ModelSelector';
 import { ColorCustomizer } from './ColorCustomizer';
-import { PatternCustomizer } from './PatternCustomizer';
+import { EnhancedPatternSelector } from './EnhancedPatternSelector';
 import { NumberCustomizer } from './NumberCustomizer';
 import { NameCustomizer } from './NameCustomizer';
 import { TextCustomizer } from './TextCustomizer';
 import { LogoCustomizer } from './LogoCustomizer';
+import { SendDesignButton } from './SendDesignButton';
 import { cn } from '@/lib/utils';
 
 interface CustomizationSidebarProps {
@@ -39,7 +40,7 @@ interface CustomizationSidebarProps {
 }
 
 const menuItems = [
-  { id: 'design', label: 'Design', icon: Palette, description: 'Choose design template' },
+  { id: 'model', label: 'Kit Type', icon: Shirt, description: 'Choose kit model' },
   { id: 'color', label: 'Colors', icon: CircleDot, description: 'Customize colors' },
   { id: 'pattern', label: 'Pattern', icon: Layers, description: 'Select patterns' },
   { id: 'number', label: 'Number', icon: Hash, description: 'Player number' },
@@ -55,15 +56,22 @@ export const CustomizationSidebar = ({
   currentView,
   setCurrentView
 }: CustomizationSidebarProps) => {
-  const [activeSection, setActiveSection] = useState('design');
+  const [activeSection, setActiveSection] = useState('model');
+
+  const handleModelChange = (modelType: string) => {
+    setCustomization({
+      ...customization,
+      modelType
+    });
+  };
 
   const renderContent = () => {
     switch (activeSection) {
-      case 'design':
+      case 'model':
         return (
-          <DesignSelector
-            currentView={currentView}
-            onViewChange={setCurrentView}
+          <ModelSelector
+            selectedModel={customization.modelType || 'home'}
+            onModelChange={handleModelChange}
           />
         );
       case 'color':
@@ -75,7 +83,7 @@ export const CustomizationSidebar = ({
         );
       case 'pattern':
         return (
-          <PatternCustomizer
+          <EnhancedPatternSelector
             customization={customization}
             setCustomization={setCustomization}
           />
@@ -197,6 +205,14 @@ export const CustomizationSidebar = ({
         <div className="flex-1 overflow-y-auto bg-gray-50/50">
           <div className="p-0">
             {renderContent()}
+          </div>
+          
+          {/* Send Design Button - Always visible at bottom */}
+          <div className="p-4 border-t bg-white">
+            <SendDesignButton
+              customization={customization}
+              currentView={currentView}
+            />
           </div>
         </div>
       </div>
