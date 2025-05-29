@@ -1,8 +1,8 @@
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
-import { Mesh, MeshStandardMaterial, CanvasTexture, Object3D } from 'three';
+import { Mesh, MeshStandardMaterial, CanvasTexture, Object3D, BoxGeometry, CylinderGeometry } from 'three';
 import * as THREE from 'three';
 
 interface UniformModelProps {
@@ -83,7 +83,7 @@ function applyCustomization(
   }
 ) {
   model.traverse((child) => {
-    if (child instanceof Mesh && child.name.startsWith("Cloth_mesh")) {
+    if (child instanceof Mesh && (child.name.startsWith("Cloth_mesh") || child.name === "shirt" || child.name === "shorts")) {
       if (child.material instanceof MeshStandardMaterial) {
         child.material = child.material.clone();
         child.material.color.set(options.baseColor);
@@ -111,9 +111,69 @@ function applyCustomization(
   });
 }
 
+// Create a fallback uniform model using basic geometry
+function createFallbackUniform(baseColor: string) {
+  const group = new THREE.Group();
+  
+  // Create shirt (cylinder)
+  const shirtGeometry = new CylinderGeometry(0.8, 1.2, 1.5, 8);
+  const shirtMaterial = new MeshStandardMaterial({ color: baseColor });
+  const shirt = new Mesh(shirtGeometry, shirtMaterial);
+  shirt.name = "shirt";
+  shirt.position.set(0, 0.5, 0);
+  
+  // Create shorts (cylinder)
+  const shortsGeometry = new CylinderGeometry(1.0, 1.0, 0.8, 8);
+  const shortsMaterial = new MeshStandardMaterial({ color: baseColor });
+  const shorts = new Mesh(shortsGeometry, shortsMaterial);
+  shorts.name = "shorts";
+  shorts.position.set(0, -0.8, 0);
+  
+  group.add(shirt);
+  group.add(shorts);
+  
+  return group;
+}
+
 export const UniformModel = ({ currentView, customization }: UniformModelProps) => {
   const meshRef = useRef<THREE.Group>(null);
-  const { scene } = useGLTF('/kits/home.glb');
+  const [useGLBModel, setUseGLBModel] = useState(true);
+  const [glbModel, setGLBModel] = useState<Object3D | null>(null);
+
+  // Try to load GLB model with error handling
+  useEffect(() => {
+    const loadGLB = async () => {
+      try {
+        console.log('Attempting to load GLB model from /kits/home.glb');
+        const { scene } = await new Promise<{ scene: Object3D }>((resolve, reject) => {
+          const loader = new THREE.GLTFLoader();
+          loader.load(
+            '/kits/home.glb',
+            (gltf) => {
+              console.log('GLB model loaded successfully:', gltf);
+              resolve({ scene: gltf.scene });
+            },
+            (progress) => {
+              console.log('Loading progress:', progress);
+            },
+            (error) => {
+              console.error('GLB loading error:', error);
+              reject(error);
+            }
+          );
+        });
+        
+        setGLBModel(scene);
+        setUseGLBModel(true);
+      } catch (error) {
+        console.error('Failed to load GLB model, using fallback:', error);
+        setUseGLBModel(false);
+        setGLBModel(null);
+      }
+    };
+
+    loadGLB();
+  }, []);
 
   useFrame((state) => {
     if (meshRef.current) {
@@ -123,8 +183,14 @@ export const UniformModel = ({ currentView, customization }: UniformModelProps) 
   });
 
   useEffect(() => {
-    if (scene) {
-      const clonedScene = scene.clone();
+    if (!meshRef.current) return;
+
+    // Clear previous children
+    meshRef.current.clear();
+
+    if (useGLBModel && glbModel) {
+      // Use GLB model
+      const clonedScene = glbModel.clone();
       
       // Apply customization to all cloth meshes
       applyCustomization(clonedScene, {
@@ -133,13 +199,21 @@ export const UniformModel = ({ currentView, customization }: UniformModelProps) 
         patternColor: customization.patternColor
       });
       
-      // Clear previous children and add the customized model
-      if (meshRef.current) {
-        meshRef.current.clear();
-        meshRef.current.add(clonedScene);
-      }
+      meshRef.current.add(clonedScene);
+    } else {
+      // Use fallback model
+      const fallbackModel = createFallbackUniform(customization.baseColor);
+      
+      // Apply customization to fallback model
+      applyCustomization(fallbackModel, {
+        baseColor: customization.baseColor,
+        pattern: customization.pattern,
+        patternColor: customization.patternColor
+      });
+      
+      meshRef.current.add(fallbackModel);
     }
-  }, [scene, customization.baseColor, customization.pattern, customization.patternColor]);
+  }, [glbModel, useGLBModel, customization.baseColor, customization.pattern, customization.patternColor]);
 
   return (
     <group
@@ -149,6 +223,3 @@ export const UniformModel = ({ currentView, customization }: UniformModelProps) 
     />
   );
 };
-
-// Preload the GLB model
-useGLTF.preload('/kits/home.glb');
