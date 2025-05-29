@@ -1,9 +1,9 @@
 
 import { useRef, useMemo, useEffect, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { useGLTF } from '@react-three/drei';
-import { Mesh, MeshStandardMaterial, Color, CanvasTexture, Object3D } from 'three';
+import { Mesh, MeshStandardMaterial, CanvasTexture } from 'three';
 import * as THREE from 'three';
+import { UniformFallback } from './UniformFallback';
 
 interface UniformModelProps {
   currentView: string;
@@ -29,130 +29,8 @@ function hexToRGB(hex: string) {
   };
 }
 
-function applyColoredPattern(
-  textureFile: string, 
-  patternColor: string, 
-  model: Object3D,
-  callback: (texture: CanvasTexture) => void
-) {
-  const img = new Image();
-  img.src = `/textures/${textureFile}`;
-  img.onload = () => {
-    const canvas = document.createElement('canvas');
-    canvas.width = img.width;
-    canvas.height = img.height;
-    const ctx = canvas.getContext('2d')!;
-    ctx.drawImage(img, 0, 0);
-
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
-    const color = hexToRGB(patternColor);
-
-    for (let i = 0; i < data.length; i += 4) {
-      if (data[i] < 10 && data[i + 1] < 10 && data[i + 2] < 10 && data[i + 3] > 0) {
-        data[i] = color.r;
-        data[i + 1] = color.g;
-        data[i + 2] = color.b;
-      }
-    }
-
-    ctx.putImageData(imageData, 0, 0);
-    const texture = new CanvasTexture(canvas);
-    callback(texture);
-  };
-}
-
 export const UniformModel = ({ currentView, customization }: UniformModelProps) => {
   const meshRef = useRef<THREE.Group>(null);
-  const [patternTexture, setPatternTexture] = useState<CanvasTexture | null>(null);
-  
-  const modelType = customization.modelType || 'home';
-  const modelPath = `/kits/${modelType}.glb`;
-  
-  // Load the GLB model
-  const { scene } = useGLTF(modelPath);
-  
-  // Clone the scene to avoid sharing between instances
-  const clonedScene = useMemo(() => scene.clone(), [scene]);
-
-  // Apply colors and patterns when customization changes
-  useEffect(() => {
-    if (!clonedScene) return;
-
-    // Apply base color to the Body mesh
-    clonedScene.traverse((child) => {
-      if (child instanceof Mesh && child.name === "Body") {
-        if (child.material instanceof MeshStandardMaterial) {
-          child.material = child.material.clone();
-          child.material.color.set(customization.baseColor);
-          
-          // Apply pattern if selected
-          if (customization.pattern && customization.pattern !== 'solid' && customization.patternColor) {
-            const patternFile = `${customization.pattern}.svg`;
-            applyColoredPattern(patternFile, customization.patternColor, clonedScene, (texture) => {
-              if (child.material instanceof MeshStandardMaterial) {
-                child.material.map = texture;
-                child.material.needsUpdate = true;
-              }
-            });
-          } else {
-            // Remove pattern if solid is selected
-            child.material.map = null;
-            child.material.needsUpdate = true;
-          }
-        }
-      }
-    });
-  }, [clonedScene, customization.baseColor, customization.pattern, customization.patternColor]);
-
-  // Add player number and name as text geometry or decals
-  useEffect(() => {
-    if (!clonedScene || !customization.playerNumber) return;
-
-    // Create canvas for player number
-    const canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 512;
-    const ctx = canvas.getContext('2d')!;
-    
-    // Clear canvas
-    ctx.clearRect(0, 0, 512, 512);
-    
-    // Add player number
-    if (customization.playerNumber) {
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 120px Arial';
-      ctx.textAlign = 'center';
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 4;
-      ctx.strokeText(customization.playerNumber, 256, 300);
-      ctx.fillText(customization.playerNumber, 256, 300);
-    }
-    
-    // Add player name
-    if (customization.playerName) {
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 32px Arial';
-      ctx.textAlign = 'center';
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 2;
-      ctx.strokeText(customization.playerName.toUpperCase(), 256, 360);
-      ctx.fillText(customization.playerName.toUpperCase(), 256, 360);
-    }
-    
-    const numberTexture = new CanvasTexture(canvas);
-    
-    // Apply to number area or create a decal
-    clonedScene.traverse((child) => {
-      if (child instanceof Mesh && (child.name === "Number" || child.name === "Back")) {
-        if (child.material instanceof MeshStandardMaterial) {
-          child.material = child.material.clone();
-          child.material.map = numberTexture;
-          child.material.needsUpdate = true;
-        }
-      }
-    });
-  }, [clonedScene, customization.playerNumber, customization.playerName]);
 
   useFrame((state) => {
     if (meshRef.current) {
@@ -181,12 +59,14 @@ export const UniformModel = ({ currentView, customization }: UniformModelProps) 
       position={position}
       scale={[1, 1, 1]}
     >
-      <primitive object={clonedScene} />
+      {/* Using fallback component until GLB files are available */}
+      <UniformFallback customization={customization} />
+      
+      {/* Info text */}
+      <mesh position={[0, 4, 0]}>
+        <boxGeometry args={[4, 0.5, 0.1]} />
+        <meshStandardMaterial color="#4A90E2" />
+      </mesh>
     </group>
   );
 };
-
-// Preload all models
-useGLTF.preload('/kits/home.glb');
-useGLTF.preload('/kits/away.glb');
-useGLTF.preload('/kits/goalkeeper.glb');
