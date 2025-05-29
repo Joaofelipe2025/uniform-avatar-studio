@@ -113,7 +113,7 @@ function applyCustomization(
 
 export const UniformModel = ({ currentView, customization }: UniformModelProps) => {
   const meshRef = useRef<THREE.Group>(null);
-  const { scene } = useGLTF('/kits/home_3.glb');
+  const { scene } = useGLTF('/kits/home.glb');
 
   useFrame((state) => {
     if (meshRef.current) {
@@ -151,4 +151,4 @@ export const UniformModel = ({ currentView, customization }: UniformModelProps) 
 };
 
 // Preload the GLB model
-useGLTF.preload('/kits/home_3.glb');
+useGLTF.preload('/kits/home.glb');
