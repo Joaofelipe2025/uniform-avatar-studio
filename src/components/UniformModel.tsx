@@ -1,7 +1,7 @@
+
 import { useRef, useEffect, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { useGLTF } from '@react-three/drei';
-import { Mesh, MeshStandardMaterial, CanvasTexture, Object3D, BoxGeometry, CylinderGeometry } from 'three';
+import { Mesh, MeshStandardMaterial, Object3D, BoxGeometry, CylinderGeometry } from 'three';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
@@ -29,49 +29,78 @@ function hexToRGB(hex: string) {
   };
 }
 
-function applyColoredPattern(
-  textureFile: string,
+function applyPatternTexture(
+  patternName: string,
   patternColor: string,
   model: Object3D,
-  callback: (texture: CanvasTexture) => void
+  callback: (texture: THREE.Texture) => void
 ) {
-  const img = new Image();
-  img.crossOrigin = 'anonymous';
-  img.src = `/textures/${textureFile}`;
+  if (patternName === 'solid') {
+    callback(null);
+    return;
+  }
+
+  const textureLoader = new THREE.TextureLoader();
   
-  img.onload = () => {
-    const canvas = document.createElement('canvas');
-    canvas.width = img.width || 512;
-    canvas.height = img.height || 512;
-    const ctx = canvas.getContext('2d')!;
-    
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
-    const color = hexToRGB(patternColor);
-    
-    // Replace black areas with the pattern color
-    for (let i = 0; i < data.length; i += 4) {
-      if (data[i] < 10 && data[i + 1] < 10 && data[i + 2] < 10 && data[i + 3] > 0) {
-        data[i] = color.r;
-        data[i + 1] = color.g;
-        data[i + 2] = color.b;
+  // Carrega a textura diretamente
+  textureLoader.load(
+    `/textures/${patternName}.svg`,
+    (texture) => {
+      // Configurar wrapping e repetição
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      texture.repeat.set(2, 2);
+      
+      // Aplicar coloração se necessário
+      if (patternColor && patternColor !== '#ffffff') {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        
+        img.onload = () => {
+          canvas.width = img.width || 512;
+          canvas.height = img.height || 512;
+          
+          // Desenhar a imagem original
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          
+          // Aplicar coloração
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const data = imageData.data;
+          const color = hexToRGB(patternColor);
+          
+          // Substituir áreas escuras pela cor do padrão
+          for (let i = 0; i < data.length; i += 4) {
+            if (data[i] < 10 && data[i + 1] < 10 && data[i + 2] < 10 && data[i + 3] > 0) {
+              data[i] = color.r;
+              data[i + 1] = color.g;
+              data[i + 2] = color.b;
+            }
+          }
+          
+          ctx.putImageData(imageData, 0, 0);
+          
+          // Criar nova textura do canvas
+          const coloredTexture = new THREE.CanvasTexture(canvas);
+          coloredTexture.wrapS = THREE.RepeatWrapping;
+          coloredTexture.wrapT = THREE.RepeatWrapping;
+          coloredTexture.repeat.set(2, 2);
+          
+          callback(coloredTexture);
+        };
+        
+        img.src = `/textures/${patternName}.svg`;
+      } else {
+        callback(texture);
       }
+    },
+    undefined,
+    (error) => {
+      console.warn(`Failed to load pattern: ${patternName}`, error);
+      callback(null);
     }
-    
-    ctx.putImageData(imageData, 0, 0);
-    const texture = new CanvasTexture(canvas);
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(2, 2);
-    
-    callback(texture);
-  };
-  
-  img.onerror = () => {
-    console.warn(`Failed to load pattern: ${textureFile}`);
-  };
+  );
 }
 
 function applyCustomization(
@@ -83,22 +112,24 @@ function applyCustomization(
   }
 ) {
   model.traverse((child) => {
-    if (child instanceof Mesh && (child.name.startsWith("Cloth_mesh") || child.name === "shirt" || child.name === "shorts")) {
+    if (child instanceof Mesh && child.name.startsWith("Cloth_mesh")) {
       if (child.material instanceof MeshStandardMaterial) {
+        // Clonar o material para não afetar outros objetos
         child.material = child.material.clone();
         child.material.color.set(options.baseColor);
 
-        if (
-          options.pattern &&
-          options.pattern !== 'solid' &&
-          options.patternColor
-        ) {
-          applyColoredPattern(
-            `${options.pattern}.svg`,
+        // Aplicar textura de padrão se não for sólido
+        if (options.pattern && options.pattern !== 'solid' && options.patternColor) {
+          applyPatternTexture(
+            options.pattern,
             options.patternColor,
             model,
             (texture) => {
-              child.material.map = texture;
+              if (texture) {
+                child.material.map = texture;
+              } else {
+                child.material.map = null;
+              }
               child.material.needsUpdate = true;
             }
           );
@@ -119,14 +150,14 @@ function createFallbackUniform(baseColor: string) {
   const shirtGeometry = new CylinderGeometry(0.8, 1.2, 1.5, 8);
   const shirtMaterial = new MeshStandardMaterial({ color: baseColor });
   const shirt = new Mesh(shirtGeometry, shirtMaterial);
-  shirt.name = "shirt";
+  shirt.name = "Cloth_mesh_shirt";
   shirt.position.set(0, 0.5, 0);
   
   // Create shorts (cylinder)
   const shortsGeometry = new CylinderGeometry(1.0, 1.0, 0.8, 8);
   const shortsMaterial = new MeshStandardMaterial({ color: baseColor });
   const shorts = new Mesh(shortsGeometry, shortsMaterial);
-  shorts.name = "shorts";
+  shorts.name = "Cloth_mesh_shorts";
   shorts.position.set(0, -0.8, 0);
   
   group.add(shirt);
@@ -151,6 +182,18 @@ export const UniformModel = ({ currentView, customization }: UniformModelProps) 
             '/kits/home.glb',
             (gltf) => {
               console.log('GLB model loaded successfully:', gltf);
+              
+              // Configurar escala e posicionamento adequados
+              gltf.scene.scale.set(1.2, 1.2, 1.2);
+              gltf.scene.position.set(0, -0.5, 0);
+              
+              // Centralizar o modelo baseado em sua bounding box
+              const box = new THREE.Box3().setFromObject(gltf.scene);
+              const center = box.getCenter(new THREE.Vector3());
+              gltf.scene.position.x = -center.x;
+              gltf.scene.position.y = -center.y + 0.2; // Pequeno ajuste vertical
+              gltf.scene.position.z = -center.z;
+              
               resolve({ scene: gltf.scene });
             },
             (progress) => {
@@ -178,7 +221,7 @@ export const UniformModel = ({ currentView, customization }: UniformModelProps) 
   useFrame((state) => {
     if (meshRef.current) {
       // Subtle floating animation
-      meshRef.current.position.y = Math.sin(state.clock.elapsedTime) * 0.1;
+      meshRef.current.position.y = Math.sin(state.clock.elapsedTime) * 0.05;
     }
   });
 

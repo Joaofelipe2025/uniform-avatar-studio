@@ -20,7 +20,7 @@ export const UniformViewer3D = ({ currentView, customization }: UniformViewer3DP
   return (
     <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 relative">
       <Canvas
-        camera={{ position: [0, 0, 5], fov: 50 }}
+        camera={{ position: [0, 0, 3], fov: 75 }}
         shadows
         className="cursor-grab active:cursor-grabbing w-full h-full"
         style={{ width: '100%', height: '100%' }}
@@ -60,12 +60,13 @@ export const UniformViewer3D = ({ currentView, customization }: UniformViewer3DP
           enablePan={false}
           enableZoom={true}
           enableRotate={true}
-          minDistance={3}
-          maxDistance={8}
+          minDistance={1.5}
+          maxDistance={6}
           minPolarAngle={Math.PI / 6}
           maxPolarAngle={Math.PI - Math.PI / 6}
           autoRotate={false}
           autoRotateSpeed={0.5}
+          target={[0, 0, 0]}
         />
       </Canvas>
       
