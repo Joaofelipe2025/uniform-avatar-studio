@@ -1,9 +1,9 @@
-
 import { useRef, useEffect, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import { Mesh, MeshStandardMaterial, CanvasTexture, Object3D, BoxGeometry, CylinderGeometry } from 'three';
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 interface UniformModelProps {
   currentView: string;
@@ -146,7 +146,7 @@ export const UniformModel = ({ currentView, customization }: UniformModelProps) 
       try {
         console.log('Attempting to load GLB model from /kits/home.glb');
         const { scene } = await new Promise<{ scene: Object3D }>((resolve, reject) => {
-          const loader = new THREE.GLTFLoader();
+          const loader = new GLTFLoader();
           loader.load(
             '/kits/home.glb',
             (gltf) => {
