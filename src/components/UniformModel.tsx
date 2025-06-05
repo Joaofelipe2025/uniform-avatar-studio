@@ -4,7 +4,8 @@ import { useFrame } from '@react-three/fiber';
 import { Object3D } from 'three';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { centerAndScaleModel, applyCustomization } from '@/utils/modelUtils';
+import { centerAndScaleModel } from '@/utils/modelUtils';
+import { applyPatternToModel } from '@/utils/pattern';
 
 interface UniformModelProps {
   currentView: string;
@@ -72,11 +73,8 @@ export const UniformModel = ({ currentView, customization }: UniformModelProps) 
     
     const clonedScene = glbModel.clone();
     
-    applyCustomization(clonedScene, {
-      baseColor: customization.baseColor,
-      pattern: customization.pattern,
-      patternColor: customization.patternColor
-    });
+    // Apply pattern using the new utility function
+    applyPatternToModel(clonedScene, customization);
     
     meshRef.current.add(clonedScene);
   }, [glbModel, isLoading, customization.baseColor, customization.pattern, customization.patternColor]);
