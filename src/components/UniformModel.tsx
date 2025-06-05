@@ -66,6 +66,7 @@ export const UniformModel = ({ currentView, customization }: UniformModelProps) 
     }
   });
 
+  // Apply patterns and colors whenever they change
   useEffect(() => {
     if (!meshRef.current || !glbModel || isLoading) return;
 
@@ -73,11 +74,11 @@ export const UniformModel = ({ currentView, customization }: UniformModelProps) 
     
     const clonedScene = glbModel.clone();
     
-    // Apply pattern using the new utility function
+    // Apply pattern using the updated utility function
     applyPatternToModel(clonedScene, customization);
     
     meshRef.current.add(clonedScene);
-  }, [glbModel, isLoading, customization.baseColor, customization.pattern, customization.patternColor]);
+  }, [glbModel, isLoading, customization.pattern, customization.patternColor]);
 
   if (isLoading) {
     return null;
