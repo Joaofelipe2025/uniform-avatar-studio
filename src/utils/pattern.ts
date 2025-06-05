@@ -2,42 +2,50 @@
 import * as THREE from 'three';
 
 export function applyPatternToModel(model: THREE.Object3D, customization: any) {
-  const loader = new THREE.TextureLoader();
-  const color = new THREE.Color(customization.patternColor || '#ffffff');
+  if (!model) return;
 
-  const applyColorOnly = () => {
+  const loader = new THREE.TextureLoader();
+  const baseColor = new THREE.Color(customization.patternColor || '#ffffff');
+
+  const applyOnlyColor = () => {
     model.traverse((child) => {
-      if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial) {
-        child.material.map = null;
-        child.material.color = color;
+      if (child instanceof THREE.Mesh) {
+        child.material = new THREE.MeshStandardMaterial({
+          color: baseColor,
+          roughness: 0.6,
+          metalness: 0.1
+        });
         child.material.needsUpdate = true;
       }
     });
   };
 
-  if (!model) return;
-
   if (customization.pattern === 'solid') {
-    applyColorOnly();
+    applyOnlyColor();
   } else {
-    loader.load(`/textures/${customization.pattern}.png`,
+    loader.load(
+      `/textures/${customization.pattern}.png`,
       (texture) => {
         texture.wrapS = THREE.RepeatWrapping;
         texture.wrapT = THREE.RepeatWrapping;
         texture.repeat.set(1, 1);
 
         model.traverse((child) => {
-          if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial) {
-            child.material.map = texture;
-            child.material.color = color;
+          if (child instanceof THREE.Mesh) {
+            child.material = new THREE.MeshStandardMaterial({
+              map: texture,
+              color: baseColor,
+              roughness: 0.6,
+              metalness: 0.1
+            });
             child.material.needsUpdate = true;
           }
         });
       },
       undefined,
       () => {
-        console.warn('Falha ao carregar o pattern. Aplicando apenas cor.');
-        applyColorOnly();
+        console.warn('Erro ao carregar textura, aplicando fallback de cor.');
+        applyOnlyColor();
       }
     );
   }

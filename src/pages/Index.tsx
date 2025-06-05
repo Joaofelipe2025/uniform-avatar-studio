@@ -24,7 +24,7 @@ const Index = () => {
     playerNumber: '10',
     logoUrl: undefined,
     modelType: 'home',
-    patternColor: '#ffffff'
+    patternColor: '#2563eb' // Inicializa com a mesma cor base
   });
 
   const handleSaveProject = async () => {

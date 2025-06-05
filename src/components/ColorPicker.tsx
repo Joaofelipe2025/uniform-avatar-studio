@@ -13,10 +13,13 @@ const predefinedColors = [
 ];
 
 export const ColorPicker = ({ customization, setCustomization }: ColorPickerProps) => {
-  const updateColor = (type: 'baseColor' | 'accentColor', color: string) => {
+  const updateColor = (type: 'baseColor' | 'accentColor' | 'patternColor', color: string) => {
+    console.log(`Updating ${type} to:`, color);
     setCustomization({
       ...customization,
-      [type]: color
+      [type]: color,
+      // Quando a cor base muda, também atualiza a cor do padrão para manter consistência
+      ...(type === 'baseColor' && { patternColor: color })
     });
   };
 
@@ -43,6 +46,31 @@ export const ColorPicker = ({ customization, setCustomization }: ColorPickerProp
           type="color"
           value={customization.baseColor}
           onChange={(e) => updateColor('baseColor', e.target.value)}
+          className="w-full h-12 rounded-lg border border-gray-300 cursor-pointer"
+        />
+      </div>
+
+      {/* Pattern Color */}
+      <div className="space-y-3">
+        <Label className="text-lg font-semibold">Cor do Padrão</Label>
+        <div className="grid grid-cols-6 gap-2">
+          {predefinedColors.map((color) => (
+            <button
+              key={`pattern-${color}`}
+              onClick={() => updateColor('patternColor', color)}
+              className={`w-10 h-10 rounded-lg border-2 transition-all hover:scale-110 ${
+                customization.patternColor === color 
+                  ? 'border-spized-blue shadow-lg' 
+                  : 'border-gray-300'
+              }`}
+              style={{ backgroundColor: color }}
+            />
+          ))}
+        </div>
+        <input
+          type="color"
+          value={customization.patternColor || customization.baseColor}
+          onChange={(e) => updateColor('patternColor', e.target.value)}
           className="w-full h-12 rounded-lg border border-gray-300 cursor-pointer"
         />
       </div>
