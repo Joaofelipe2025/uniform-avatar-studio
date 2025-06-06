@@ -14,6 +14,8 @@ export const applyPatternToModel = (
     model.traverse((child: any) => {
       if (child.isMesh) {
         child.material.map = null;
+        child.material.alphaMap = null;
+        child.material.transparent = false;
         child.material.color = new THREE.Color(customization.patternColor);
         child.material.needsUpdate = true;
       }
@@ -30,24 +32,27 @@ export const applyPatternToModel = (
     (texture) => {
       texture.wrapS = THREE.RepeatWrapping;
       texture.wrapT = THREE.RepeatWrapping;
-      texture.repeat.set(2, 2);
+      texture.repeat.set(2, 2); // ajuste conforme o efeito desejado
 
       model.traverse((child: any) => {
         if (child.isMesh) {
-          child.material.map = texture;
+          child.material.map = null;
+          child.material.alphaMap = texture;
+          child.material.transparent = true;
           child.material.color = new THREE.Color(customization.patternColor);
-          child.material.combine = THREE.MultiplyOperation;
           child.material.needsUpdate = true;
         }
       });
     },
     undefined,
     (error) => {
-      console.error('Erro ao carregar pattern:', error);
+      console.error('Erro ao carregar textura:', error);
       // fallback: usa só a cor
       model.traverse((child: any) => {
         if (child.isMesh) {
           child.material.map = null;
+          child.material.alphaMap = null;
+          child.material.transparent = false;
           child.material.color = new THREE.Color(customization.patternColor);
           child.material.needsUpdate = true;
         }
