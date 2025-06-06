@@ -82,6 +82,14 @@ export const UniformModel = ({ currentView, customization }: UniformModelProps) 
     meshRef.current.add(clonedScene);
   }, [glbModel, isLoading, customization.pattern, customization.patternColor, customization.baseColor]);
 
+  // Separate useEffect to apply patterns when model is ready
+  useEffect(() => {
+    if (glbModel && !isLoading) {
+      console.log('Model ready, applying pattern:', customization.pattern, 'with color:', customization.patternColor);
+      applyPatternToModel(glbModel, customization);
+    }
+  }, [glbModel, isLoading, customization.pattern, customization.patternColor]);
+
   if (isLoading) {
     return null;
   }
