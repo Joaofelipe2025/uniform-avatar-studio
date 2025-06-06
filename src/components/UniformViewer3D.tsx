@@ -1,9 +1,8 @@
 
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, ContactShadows } from '@react-three/drei';
-import { Suspense, useEffect } from 'react';
+import { Suspense } from 'react';
 import { UniformModel } from './UniformModel';
-import { applyPatternToModel } from '@/utils/pattern';
 
 interface UniformViewer3DProps {
   currentView: string;

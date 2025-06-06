@@ -5,7 +5,7 @@ import { Object3D } from 'three';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { centerAndScaleModel } from '@/utils/modelUtils';
-import { applyPatternToModel } from '@/utils/pattern';
+import { applyPatternToModel } from '@/utils/applyPatternToModel';
 
 interface UniformModelProps {
   currentView: string;
@@ -76,19 +76,15 @@ export const UniformModel = ({ currentView, customization }: UniformModelProps) 
     
     const clonedScene = glbModel.clone();
     
-    // Apply pattern using the updated utility function
-    applyPatternToModel(clonedScene, customization);
+    // Apply pattern using the new utility function
+    applyPatternToModel(clonedScene, {
+      baseColor: customization.baseColor,
+      pattern: customization.pattern,
+      patternColor: customization.patternColor || customization.baseColor
+    });
     
     meshRef.current.add(clonedScene);
   }, [glbModel, isLoading, customization.pattern, customization.patternColor, customization.baseColor]);
-
-  // Separate useEffect to apply patterns when model is ready
-  useEffect(() => {
-    if (glbModel && !isLoading) {
-      console.log('Model ready, applying pattern:', customization.pattern, 'with color:', customization.patternColor);
-      applyPatternToModel(glbModel, customization);
-    }
-  }, [glbModel, isLoading, customization.pattern, customization.patternColor]);
 
   if (isLoading) {
     return null;
