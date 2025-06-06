@@ -32,13 +32,13 @@ export const applyPatternToModel = (
     (texture) => {
       texture.wrapS = THREE.RepeatWrapping;
       texture.wrapT = THREE.RepeatWrapping;
-      texture.repeat.set(2, 2); // ajuste conforme o efeito desejado
+      texture.repeat.set(2, 2);
+      texture.colorSpace = THREE.SRGBColorSpace;
 
       model.traverse((child: any) => {
         if (child.isMesh) {
-          child.material.map = null;
-          child.material.alphaMap = texture;
-          child.material.transparent = true;
+          child.material.map = texture;
+          child.material.transparent = false;
           child.material.color = new THREE.Color(customization.patternColor);
           child.material.needsUpdate = true;
         }
